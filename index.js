@@ -26,26 +26,32 @@ app.get("/api/hello", function (req, res) {
 });
 
 app.get("/api/:date?", (req, res) => {
-  let dateUTC = "";
+  let dateParam = req.params.date;
   let timestamp = 0;
-  if(/^\d{13}$/.test(req.params.date)) {
-    timestamp = parseInt(req.params.date);
-    dateUTC = new Date(timestamp).toUTCString();
-  } else if(!req.params.date) {
-    timestamp = Date.now();
-    dateUTC = new Date(timestamp).toUTCString;
-  } else {
-    let dateSplit = req.params.date.split("-");
-    const [year, month, day] = dateSplit.map(Number);
-    dateUTC = new Date(Date.UTC(year, month - 1, day)).toUTCString();
-    timestamp = Date.parse(dateUTC);
-  };
+  let format = false;
+  let date;
 
-  res.json({
-    "unix": timestamp,
-    "utc": dateUTC
-  });
-})
+  if(!dateParam) {
+    date = new Date();
+  } else {
+    if(/^\d{13}$/.test(dateParam)) {
+      date = new Date(parseInt(dateParam));
+    } else {
+      date = new Date(dateParam);
+    }
+  }
+
+  if(isNaN(date.getTime())) {
+    res.json({
+      error: "Invalid Date"
+    }); 
+  } else {
+    res.json({
+      unix: date.getTime(),
+      utc: date.toUTCString()
+    });
+  }
+});
 
 // listen for requests :)
 var listener = app.listen(process.env.PORT, function () {
